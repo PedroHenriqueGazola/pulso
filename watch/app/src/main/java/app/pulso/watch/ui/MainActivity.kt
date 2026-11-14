@@ -1,24 +1,33 @@
 package app.pulso.watch.ui
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.wear.compose.material3.Text
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import app.pulso.watch.ui.theme.PulsoTheme
 
 class MainActivity : ComponentActivity() {
+  private val statusViewModel: StatusViewModel by viewModels()
+
+  private val permissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    permissionsLauncher.launch(REQUIRED_PERMISSIONS)
     setContent {
       PulsoTheme {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-          Text("Pulso")
-        }
+        StatusScreen(statusViewModel)
       }
     }
+  }
+
+  private companion object {
+    val REQUIRED_PERMISSIONS = arrayOf(
+      Manifest.permission.BLUETOOTH_SCAN,
+      Manifest.permission.BLUETOOTH_CONNECT,
+      Manifest.permission.POST_NOTIFICATIONS,
+    )
   }
 }
