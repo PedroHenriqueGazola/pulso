@@ -4,9 +4,7 @@ import android.content.Context
 import app.pulso.watch.bluetooth.IphoneConnection
 import app.pulso.watch.bluetooth.IphoneScanner
 import app.pulso.watch.bluetooth.PairedIphoneStore
-import app.pulso.watch.notifications.WatchNotificationPresenter
-import app.pulso.watch.service.CallHandler
-import app.pulso.watch.service.CallsAsNotifications
+import app.pulso.watch.calls.CallStateMachine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,7 +18,7 @@ object PulsoGraph {
     private set
   lateinit var iphoneScanner: IphoneScanner
     private set
-  lateinit var callHandler: CallHandler
+  lateinit var callStateMachine: CallStateMachine
     private set
 
   fun initialize(context: Context) {
@@ -28,6 +26,6 @@ object PulsoGraph {
     pairedIphoneStore = PairedIphoneStore(context)
     iphoneConnection = IphoneConnection(context, pairedIphoneStore, applicationScope)
     iphoneScanner = IphoneScanner(context)
-    callHandler = CallsAsNotifications(WatchNotificationPresenter(context))
+    callStateMachine = CallStateMachine()
   }
 }

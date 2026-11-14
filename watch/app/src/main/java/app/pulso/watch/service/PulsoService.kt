@@ -12,6 +12,7 @@ import app.pulso.watch.PulsoSessions
 import app.pulso.watch.ams.AmsSession
 import app.pulso.watch.ancs.AncsSession
 import app.pulso.watch.bluetooth.ConnectionState
+import app.pulso.watch.calls.CallPresenter
 import app.pulso.watch.notifications.NotificationChannels
 import app.pulso.watch.notifications.WatchNotificationPresenter
 import kotlinx.coroutines.CoroutineScope
@@ -32,9 +33,11 @@ class PulsoService : Service() {
     super.onCreate()
     NotificationChannels.register(this)
     val presenter = WatchNotificationPresenter(this)
-    router = IphoneUpdateRouter(presenter, PulsoGraph.callHandler)
+    router = IphoneUpdateRouter(presenter, PulsoGraph.callStateMachine)
+    val callPresenter = CallPresenter(this)
     startForeground(SERVICE_NOTIFICATION_ID, buildServiceNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
     serviceScope.launch { reconnectToPairedIphone() }
+    serviceScope.launch { PulsoGraph.callStateMachine.state.collect(callPresenter::render) }
     serviceScope.launch { PulsoGraph.iphoneConnection.state.collectLatest(::runSessionsWhileConnected) }
   }
 
