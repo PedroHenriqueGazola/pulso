@@ -7,11 +7,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import app.pulso.watch.media.MediaScreen
+import app.pulso.watch.media.MediaViewModel
 import app.pulso.watch.service.PulsoService
 import app.pulso.watch.ui.theme.PulsoTheme
 
 class MainActivity : ComponentActivity() {
   private val statusViewModel: StatusViewModel by viewModels()
+  private val mediaViewModel: MediaViewModel by viewModels()
 
   private val permissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
     startServiceWhenBluetoothIsAllowed()
@@ -22,7 +27,10 @@ class MainActivity : ComponentActivity() {
     permissionsLauncher.launch(REQUIRED_PERMISSIONS)
     setContent {
       PulsoTheme {
-        StatusScreen(statusViewModel)
+        val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
+        HorizontalPager(state = pagerState) { page ->
+          if (page == STATUS_PAGE) StatusScreen(statusViewModel) else MediaScreen(mediaViewModel)
+        }
       }
     }
   }
@@ -35,6 +43,9 @@ class MainActivity : ComponentActivity() {
   }
 
   private companion object {
+    const val PAGE_COUNT = 2
+    const val STATUS_PAGE = 0
+
     val REQUIRED_PERMISSIONS = arrayOf(
       Manifest.permission.BLUETOOTH_SCAN,
       Manifest.permission.BLUETOOTH_CONNECT,
