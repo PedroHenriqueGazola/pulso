@@ -34,7 +34,7 @@ class CallPresenter(private val context: Context) {
     registerIncomingCallWithTelecom(state.uid)
     notificationManager.notify(CALL_NOTIFICATION_ID, buildFullScreenNotification(state))
     context.startActivity(buildCallScreenIntent())
-    vibrator.vibrate(VibrationEffect.createWaveform(RINGING_PATTERN, RINGING_REPEAT_FROM_START))
+    vibrator.vibrate(VibrationEffect.createWaveform(RINGING_PATTERN, NO_REPEAT))
   }
 
   private fun stopAlerting() {
@@ -81,7 +81,8 @@ class CallPresenter(private val context: Context) {
 
   private companion object {
     const val CALL_NOTIFICATION_ID = 2
-    const val RINGING_REPEAT_FROM_START = 0
-    val RINGING_PATTERN = longArrayOf(0, 800, 600)
+    const val NO_REPEAT = -1
+    const val RING_CYCLES = 40
+    val RINGING_PATTERN = longArrayOf(0) + List(RING_CYCLES) { listOf(800L, 600L) }.flatten()
   }
 }

@@ -82,4 +82,13 @@ class CallStateMachineTest {
 
     assertEquals(11L, (machine.state.value as CallState.Ringing).uid)
   }
+
+  @Test
+  fun `should return to idle when reset after connection loss`() {
+    machine.onCallPosted(call())
+
+    machine.reset()
+
+    assertEquals(CallState.Idle, machine.state.value)
+  }
 }

@@ -26,11 +26,17 @@ class WatchNotificationPresenter(private val context: Context) : NotificationDis
       .setPriority(NotificationCompat.PRIORITY_HIGH)
       .setAutoCancel(true)
     if (notification.hasNegativeAction) builder.addAction(buildDismissAction(notification))
-    notificationManager.notify(notification.uid.toInt(), builder.build())
+    notificationManager.notify(NOTIFICATION_TAG, notification.uid.toInt(), builder.build())
   }
 
   override fun remove(uid: Long) {
-    notificationManager.cancel(uid.toInt())
+    notificationManager.cancel(NOTIFICATION_TAG, uid.toInt())
+  }
+
+  fun removeAll() {
+    notificationManager.activeNotifications
+      .filter { it.tag == NOTIFICATION_TAG }
+      .forEach { notificationManager.cancel(NOTIFICATION_TAG, it.id) }
   }
 
   private fun channelFor(notification: IphoneNotification): String {
@@ -57,5 +63,9 @@ class WatchNotificationPresenter(private val context: Context) : NotificationDis
     )
     val label = notification.negativeActionLabel.ifEmpty { "Dispensar" }
     return NotificationCompat.Action.Builder(android.R.drawable.ic_menu_close_clear_cancel, label, pendingIntent).build()
+  }
+
+  private companion object {
+    const val NOTIFICATION_TAG = "ancs"
   }
 }

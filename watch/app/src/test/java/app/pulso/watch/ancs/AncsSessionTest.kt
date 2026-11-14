@@ -135,4 +135,17 @@ class AncsSessionTest {
     val posted = started.updates.single() as AncsUpdate.NotificationPosted
     assertEquals(2L, posted.notification.uid)
   }
+
+  @Test
+  fun `should keep processing notifications when attributes request write fails`() = runTest {
+    val started = startSession()
+
+    gattClient.shouldFailNextWrite = true
+    emitEvent(NotificationEventKind.ADDED, uid = 1)
+    emitEvent(NotificationEventKind.ADDED, uid = 2)
+    emitAttributes(uid = 2, title = "Bia", message = "ainda funciona")
+
+    val posted = started.updates.single() as AncsUpdate.NotificationPosted
+    assertEquals(2L, posted.notification.uid)
+  }
 }

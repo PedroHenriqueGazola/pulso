@@ -2,6 +2,7 @@ package app.pulso.watch.ancs
 
 import app.pulso.watch.bluetooth.CharacteristicChange
 import app.pulso.watch.bluetooth.GattClient
+import app.pulso.watch.bluetooth.GattOperationException
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -9,18 +10,22 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 
 class AncsSession(
   private val gattClient: GattClient,
   private val scope: CoroutineScope,
   private val attributesTimeoutMillis: Long = 5_000,
+  private val logWarning: (String) -> Unit = {},
 ) {
   private val mutableUpdates = MutableSharedFlow<AncsUpdate>(extraBufferCapacity = 64)
   private val queuedEvents = Channel<NotificationSourceEvent>(Channel.UNLIMITED)
   private val dataSourceFragments = Channel<ByteArray>(Channel.UNLIMITED)
   private val pendingUids = ConcurrentHashMap.newKeySet<Long>()
   private val removedPendingUids = ConcurrentHashMap.newKeySet<Long>()
+  private val pendingStateMutex = Mutex()
   private val assembler = NotificationAttributesAssembler()
 
   val updates: SharedFlow<AncsUpdate> = mutableUpdates
@@ -55,20 +60,33 @@ class AncsSession(
     queuedEvents.send(event)
   }
 
-  private suspend fun handleRemoved(uid: Long) {
+  private suspend fun handleRemoved(uid: Long) = pendingStateMutex.withLock {
     if (uid in pendingUids) removedPendingUids += uid
     mutableUpdates.emit(AncsUpdate.NotificationRemoved(uid))
   }
 
   private suspend fun processQueuedEvents() {
     for (event in queuedEvents) {
-      val notification = fetchNotificationUnlessRemoved(event)
-      pendingUids -= event.notificationUid
-      val wasRemoved = removedPendingUids.remove(event.notificationUid)
-      if (notification == null || wasRemoved) continue
-      mutableUpdates.emit(buildUpdate(event, notification))
+      val notification = fetchNotificationIgnoringFailures(event)
+      emitUnlessRemoved(event, notification)
     }
   }
+
+  private suspend fun emitUnlessRemoved(event: NotificationSourceEvent, notification: IphoneNotification?) =
+    pendingStateMutex.withLock {
+      pendingUids -= event.notificationUid
+      val wasRemoved = removedPendingUids.remove(event.notificationUid)
+      if (notification == null || wasRemoved) return@withLock
+      mutableUpdates.emit(buildUpdate(event, notification))
+    }
+
+  private suspend fun fetchNotificationIgnoringFailures(event: NotificationSourceEvent): IphoneNotification? =
+    try {
+      fetchNotificationUnlessRemoved(event)
+    } catch (error: GattOperationException) {
+      logWarning("Notificação ${event.notificationUid} ignorada: ${error.message}")
+      null
+    }
 
   private suspend fun fetchNotificationUnlessRemoved(event: NotificationSourceEvent): IphoneNotification? {
     if (event.notificationUid in removedPendingUids) return null

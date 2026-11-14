@@ -59,6 +59,11 @@ class IphoneConnection(
       if (newState == BluetoothProfile.STATE_DISCONNECTED) handleDisconnected(gatt)
     }
 
+    override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
+      Log.i(TAG, "MTU negociado: $mtu (status=$status)")
+      discoverServicesOnce(gatt)
+    }
+
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
       handleServicesDiscovered(gatt, status)
     }
@@ -84,7 +89,7 @@ class IphoneConnection(
     hasDiscoveredServices = false
     val device = connectedGatt.device
     mutableState.value = ConnectionState.Connecting(nameOf(device))
-    if (device.bondState == BluetoothDevice.BOND_BONDED) return discoverServicesOnce(connectedGatt)
+    if (device.bondState == BluetoothDevice.BOND_BONDED) return requestLargerMtu(connectedGatt)
 
     Log.i(TAG, "iPhone ainda não pareado, iniciando bond")
     device.createBond()
@@ -94,7 +99,12 @@ class IphoneConnection(
     val connectedGatt = gatt ?: return
     if (connectedGatt.device.address != device.address) return
     Log.i(TAG, "Bond concluído com ${device.address}")
-    discoverServicesOnce(connectedGatt)
+    requestLargerMtu(connectedGatt)
+  }
+
+  private fun requestLargerMtu(connectedGatt: BluetoothGatt) {
+    val isRequested = connectedGatt.requestMtu(TARGET_MTU)
+    if (!isRequested) discoverServicesOnce(connectedGatt)
   }
 
   private fun handleBondFailed(device: BluetoothDevice) {
@@ -110,10 +120,15 @@ class IphoneConnection(
   }
 
   private fun handleServicesDiscovered(discoveredGatt: BluetoothGatt, status: Int) {
-    if (status != BluetoothGatt.GATT_SUCCESS || discoveredGatt.getService(AncsUuids.SERVICE) == null) {
-      Log.w(TAG, "ANCS não encontrado (status=$status); aguardando nova conexão")
+    if (status != BluetoothGatt.GATT_SUCCESS) {
+      Log.w(TAG, "Descoberta de serviços falhou (status=$status); aguardando nova conexão")
       hasDiscoveredServices = false
       discoveredGatt.disconnect()
+      return
+    }
+    if (discoveredGatt.getService(AncsUuids.SERVICE) == null) {
+      Log.w(TAG, "Aparelho sem ANCS (não é um iPhone); esquecendo")
+      forget()
       return
     }
     val device = discoveredGatt.device
@@ -147,5 +162,6 @@ class IphoneConnection(
   private companion object {
     const val TAG = "Pulso"
     const val DEFAULT_IPHONE_NAME = "iPhone"
+    const val TARGET_MTU = 185
   }
 }

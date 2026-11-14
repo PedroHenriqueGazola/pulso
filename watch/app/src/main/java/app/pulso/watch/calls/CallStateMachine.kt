@@ -30,6 +30,10 @@ class CallStateMachine : CallHandler {
     mutableState.value = CallState.Idle
   }
 
+  fun reset() {
+    mutableState.value = CallState.Idle
+  }
+
   fun onDeclinedOnWatch() {
     mutableState.value = CallState.Idle
   }

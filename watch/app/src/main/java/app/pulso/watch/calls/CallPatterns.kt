@@ -12,7 +12,6 @@ val CALL_TEXT_PATTERNS = listOf(
   "chamada de video",
   "chamada recebida",
   "esta ligando",
-  "ligando",
   "incoming call",
   "incoming voice",
   "incoming video",
@@ -20,5 +19,9 @@ val CALL_TEXT_PATTERNS = listOf(
   "video call",
   "voice call",
   "is calling",
-  "☎",
+)
+
+val MISSED_CALL_TEXT_PATTERNS = listOf(
+  "perdida",
+  "missed",
 )

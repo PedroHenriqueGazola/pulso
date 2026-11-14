@@ -61,4 +61,26 @@ class CallClassifierTest {
 
     assertFalse(CallClassifier.isIncomingCall(email))
   }
+
+  @Test
+  fun `should not classify as call when whatsapp reports a missed voice call`() {
+    assertFalse(CallClassifier.isIncomingCall(notification(title = "Ana", message = "Chamada de voz perdida")))
+  }
+
+  @Test
+  fun `should not classify as call when whatsapp reports a missed call in english`() {
+    assertFalse(CallClassifier.isIncomingCall(notification(title = "Ana", message = "Missed voice call")))
+  }
+
+  @Test
+  fun `should not classify as call when category is missed call`() {
+    val missed = notification(appIdentifier = "com.apple.mobilephone", category = AncsCategory.MISSED_CALL, message = "Chamada de voz")
+
+    assertFalse(CallClassifier.isIncomingCall(missed))
+  }
+
+  @Test
+  fun `should not classify as call when chat message says ligando`() {
+    assertFalse(CallClassifier.isIncomingCall(notification(title = "Ana", message = "tô ligando pra você já já")))
+  }
 }

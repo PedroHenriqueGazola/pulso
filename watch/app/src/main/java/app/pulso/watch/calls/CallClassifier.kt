@@ -9,9 +9,11 @@ object CallClassifier {
 
   fun isIncomingCall(notification: IphoneNotification): Boolean {
     if (notification.category == AncsCategory.INCOMING_CALL) return true
+    if (notification.category == AncsCategory.MISSED_CALL) return false
     if (notification.appIdentifier !in CALL_APP_IDENTIFIERS) return false
 
     val searchableText = normalize("${notification.title} ${notification.subtitle} ${notification.message}")
+    if (MISSED_CALL_TEXT_PATTERNS.any { pattern -> searchableText.contains(pattern) }) return false
     return CALL_TEXT_PATTERNS.any { pattern -> searchableText.contains(pattern) }
   }
 
