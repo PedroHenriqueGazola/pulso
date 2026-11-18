@@ -21,8 +21,17 @@ interface CallHandler {
 class IphoneUpdateRouter(
   private val notificationDisplay: NotificationDisplay,
   private val callHandler: CallHandler,
+  private val onRouteFailure: (AncsUpdate, Exception) -> Unit = { _, error -> throw error },
 ) {
   fun route(update: AncsUpdate) {
+    try {
+      dispatch(update)
+    } catch (error: Exception) {
+      onRouteFailure(update, error)
+    }
+  }
+
+  private fun dispatch(update: AncsUpdate) {
     when (update) {
       is AncsUpdate.NotificationPosted -> routePosted(update.notification)
       is AncsUpdate.NotificationChanged -> routeChanged(update.notification)

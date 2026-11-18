@@ -40,6 +40,26 @@ class IphoneUpdateRouterTest {
   )
 
   @Test
+  fun `should keep routing and report failure when display throws on one update`() {
+    val failures = mutableListOf<String>()
+    val failingDisplay = object : NotificationDisplay {
+      val shown = mutableListOf<Long>()
+      override fun show(notification: IphoneNotification) {
+        if (notification.uid == 1L) throw IllegalArgumentException("ícone inválido")
+        shown += notification.uid
+      }
+      override fun remove(uid: Long) {}
+    }
+    val resilientRouter = IphoneUpdateRouter(failingDisplay, calls, onRouteFailure = { _, error -> failures += error.message.orEmpty() })
+
+    resilientRouter.route(AncsUpdate.NotificationPosted(notification(1, AncsCategory.SOCIAL)))
+    resilientRouter.route(AncsUpdate.NotificationPosted(notification(2, AncsCategory.SOCIAL)))
+
+    assertEquals(listOf(2L), failingDisplay.shown)
+    assertEquals(listOf("ícone inválido"), failures)
+  }
+
+  @Test
   fun `should show notification when posted update is a regular message`() {
     router.route(AncsUpdate.NotificationPosted(notification(1, AncsCategory.SOCIAL)))
 

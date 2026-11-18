@@ -4,24 +4,29 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
+import androidx.core.graphics.drawable.IconCompat
 import app.pulso.watch.ancs.IphoneNotification
 import app.pulso.watch.service.NotificationDisplay
 
 class WatchNotificationPresenter(private val context: Context) : NotificationDisplay {
   private val notificationManager = context.getSystemService(NotificationManager::class.java)
   private val watchOwner = Person.Builder().setName("Você").build()
+  private val appAvatars = AppAvatars(context)
 
   override fun show(notification: IphoneNotification) {
     val appearance = AppAppearances.appearanceFor(notification.appIdentifier, notification.category)
     val appLabel = appearance.label
+    val avatar = appAvatars.avatarFor(appearance)
     val builder = NotificationCompat.Builder(context, channelFor(notification))
       .setSmallIcon(NotificationIcons.drawableFor(appearance.icon))
       .setContentTitle(notification.title.ifEmpty { appLabel })
       .setContentText(notification.message)
       .setSubText(appLabel)
-      .setStyle(buildMessagingStyle(notification, appLabel))
+      .setLargeIcon(avatar)
+      .setStyle(buildMessagingStyle(notification, appLabel, avatar))
       .setGroup("ancs_${notification.uid}")
       .setCategory(NotificationCompat.CATEGORY_MESSAGE)
       .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -47,8 +52,15 @@ class WatchNotificationPresenter(private val context: Context) : NotificationDis
     return NotificationChannels.ALERTS
   }
 
-  private fun buildMessagingStyle(notification: IphoneNotification, appLabel: String): NotificationCompat.MessagingStyle {
-    val sender = Person.Builder().setName(notification.title.ifEmpty { appLabel }).build()
+  private fun buildMessagingStyle(
+    notification: IphoneNotification,
+    appLabel: String,
+    avatar: Bitmap,
+  ): NotificationCompat.MessagingStyle {
+    val sender = Person.Builder()
+      .setName(notification.title.ifEmpty { appLabel })
+      .setIcon(IconCompat.createWithBitmap(avatar))
+      .build()
     val text = listOf(notification.subtitle, notification.message).filter { it.isNotEmpty() }.joinToString("\n")
     return NotificationCompat.MessagingStyle(watchOwner)
       .setConversationTitle(appLabel)

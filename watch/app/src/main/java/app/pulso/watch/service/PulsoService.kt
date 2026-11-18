@@ -36,7 +36,11 @@ class PulsoService : Service() {
     NotificationChannels.register(this)
     val presenter = WatchNotificationPresenter(this)
     notificationPresenter = presenter
-    router = IphoneUpdateRouter(presenter, PulsoGraph.callStateMachine)
+    router = IphoneUpdateRouter(
+      presenter,
+      PulsoGraph.callStateMachine,
+      onRouteFailure = { update, error -> Log.e(TAG, "Falha ao exibir atualização do iPhone: $update", error) },
+    )
     val callPresenter = CallPresenter(this)
     startForeground(SERVICE_NOTIFICATION_ID, buildServiceNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
     serviceScope.launch { reconnectToPairedIphone() }
