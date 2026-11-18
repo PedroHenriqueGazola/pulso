@@ -14,9 +14,10 @@ class WatchNotificationPresenter(private val context: Context) : NotificationDis
   private val watchOwner = Person.Builder().setName("Você").build()
 
   override fun show(notification: IphoneNotification) {
-    val appLabel = AppLabels.labelFor(notification.appIdentifier)
+    val appearance = AppAppearances.appearanceFor(notification.appIdentifier, notification.category)
+    val appLabel = appearance.label
     val builder = NotificationCompat.Builder(context, channelFor(notification))
-      .setSmallIcon(android.R.drawable.stat_notify_chat)
+      .setSmallIcon(NotificationIcons.drawableFor(appearance.icon))
       .setContentTitle(notification.title.ifEmpty { appLabel })
       .setContentText(notification.message)
       .setSubText(appLabel)
@@ -26,6 +27,7 @@ class WatchNotificationPresenter(private val context: Context) : NotificationDis
       .setPriority(NotificationCompat.PRIORITY_HIGH)
       .setAutoCancel(true)
       .setOnlyAlertOnce(true)
+    appearance.color?.let { builder.setColor(it) }
     if (notification.hasNegativeAction) builder.addAction(buildDismissAction(notification))
     notificationManager.notify(NOTIFICATION_TAG, notification.uid.toInt(), builder.build())
   }

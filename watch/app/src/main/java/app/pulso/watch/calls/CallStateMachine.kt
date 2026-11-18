@@ -1,7 +1,7 @@
 package app.pulso.watch.calls
 
 import app.pulso.watch.ancs.IphoneNotification
-import app.pulso.watch.notifications.AppLabels
+import app.pulso.watch.notifications.AppAppearances
 import app.pulso.watch.service.CallHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,7 +47,7 @@ class CallStateMachine : CallHandler {
   private fun buildRinging(notification: IphoneNotification) = CallState.Ringing(
     uid = notification.uid,
     callerName = notification.title.ifEmpty { notification.subtitle.ifEmpty { "Desconhecido" } },
-    appLabel = AppLabels.labelFor(notification.appIdentifier),
+    appLabel = AppAppearances.appearanceFor(notification.appIdentifier, notification.category).label,
     canAnswer = notification.hasPositiveAction,
     canDecline = notification.hasNegativeAction,
   )
