@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-11-14-pulso-watch-fase1-design.md`
 
-**Referência:** WearBridge (MIT) em `/private/tmp/claude-501/-Users-pedrogazola-code/192346b5-9493-4ed0-9e40-9614ac2b17ef/scratchpad/ref/WearBridge` (se o scratchpad tiver sido limpo: `git clone https://github.com/k97/WearBridge`). Arquivos de protocolo em `wearos-app/app/src/main/java/com/wearos/ancsbridge/ancs/`, regras em `.claude/rules/gotchas.md`.
+**Referência:** WearBridge (MIT): `git clone https://github.com/k97/WearBridge`. Arquivos de protocolo em `wearos-app/app/src/main/java/com/wearos/ancsbridge/ancs/`, regras em `.claude/rules/gotchas.md`.
 
 ## Global Constraints
 
