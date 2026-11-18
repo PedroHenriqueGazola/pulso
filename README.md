@@ -54,6 +54,10 @@ cd watch
 Os parsers do protocolo ANCS foram adaptados do [WearBridge](https://github.com/k97/WearBridge)
 (MIT), assim como a lista de armadilhas em `docs/gotchas.md`.
 
+Os ícones de apps vêm do [Simple Icons](https://simpleicons.org) (CC0) e os ícones de categoria
+do [Material Design Icons](https://github.com/google/material-design-icons) (Apache 2.0). As marcas
+pertencem aos seus donos.
+
 ## Licença
 
 MIT
