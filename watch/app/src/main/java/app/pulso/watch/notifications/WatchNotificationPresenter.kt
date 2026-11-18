@@ -25,6 +25,7 @@ class WatchNotificationPresenter(private val context: Context) : NotificationDis
       .setCategory(NotificationCompat.CATEGORY_MESSAGE)
       .setPriority(NotificationCompat.PRIORITY_HIGH)
       .setAutoCancel(true)
+      .setOnlyAlertOnce(true)
     if (notification.hasNegativeAction) builder.addAction(buildDismissAction(notification))
     notificationManager.notify(NOTIFICATION_TAG, notification.uid.toInt(), builder.build())
   }
