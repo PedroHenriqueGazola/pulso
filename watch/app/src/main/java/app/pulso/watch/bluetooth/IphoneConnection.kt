@@ -23,7 +23,8 @@ class IphoneConnection(
   private val scope: CoroutineScope,
 ) {
   private val mutableState = MutableStateFlow<ConnectionState>(ConnectionState.NotPaired)
-  private val bluetoothAdapter = context.getSystemService(BluetoothManager::class.java).adapter
+  private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)
+  private val bluetoothAdapter = bluetoothManager.adapter
   private val bondStateReceiver = BondStateReceiver(onBonded = ::handleBonded, onBondFailed = ::handleBondFailed)
   @Volatile private var gatt: BluetoothGatt? = null
   @Volatile private var gattClient: AndroidGattClient? = null
@@ -147,8 +148,15 @@ class IphoneConnection(
   }
 
   private fun openGatt(device: BluetoothDevice) {
-    gatt = device.connectGatt(context, true, gattCallback, BluetoothDevice.TRANSPORT_LE)
+    val shouldWaitForIphone = !isLinkAlreadyUp(device)
+    Log.i(TAG, "Abrindo GATT (aguardar iPhone=$shouldWaitForIphone)")
+    gatt = device.connectGatt(context, shouldWaitForIphone, gattCallback, BluetoothDevice.TRANSPORT_LE)
   }
+
+  // autoConnect=true can miss a link that is already up (e.g. iOS reconnected to the watch before we registered),
+  // so when the link exists we attach directly; a failed direct attempt falls back to autoConnect on disconnect.
+  private fun isLinkAlreadyUp(device: BluetoothDevice): Boolean =
+    bluetoothManager.getConnectedDevices(BluetoothProfile.GATT).any { it.address == device.address }
 
   private fun closeGatt() {
     gattClient?.onDisconnected()
