@@ -9,17 +9,25 @@ O relógio conversa direto com os serviços Bluetooth que o próprio iOS expõe 
 
 Projeto pessoal, instalado por `adb`. Não está na Play Store.
 
-## O que funciona (Fase 1)
+## Status (Fase 1)
 
-- Notificações do iPhone no relógio, com pop-up e vibração (respeita o Foco do iPhone).
-- Botão "Dispensar" remove a notificação no iPhone.
+Testado num Galaxy Watch 6 (Wear OS 6 / Android 16) com iPhone 17 (iOS 26):
+
+- ✅ Pareamento com o iPhone e reconexão ao reinstalar o app.
+- ✅ Notificações do iPhone no relógio, com pop-up, vibração e o ícone/cor do app.
+- ✅ Botão "Dispensar" remove a notificação no iPhone.
+
+Implementado, ainda não validado no aparelho:
+
 - Ligações: atender, recusar, "em ligação no iPhone" (inclui ligações de WhatsApp).
 - Controle de música do iPhone.
-- Reconexão automática e início junto com o relógio.
+- Seguir o Foco do iPhone (aparece sem vibrar).
+- Reconexão quando o iPhone sai e volta do alcance, e início junto com o relógio.
 
 ## Limitações
 
 - Não dá para responder mensagens (o ANCS não permite).
+- Fotos, figurinhas e áudios não aparecem: o iPhone só manda o texto da notificação ("📷 Foto").
 - Sem dados de saúde no Apple Saúde, contatos ou câmera — isso exige um app no iPhone (Fase 2).
 - O relógio precisa ter sido configurado uma vez com um celular Android.
 
